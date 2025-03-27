@@ -1,0 +1,18 @@
+add database with courses and prereqs
+
+
+add custom classes getting saved into session storage
+
+add view all availible classes tab so it displays these classes from db and session storage
+
+each class can be selected by clicking on it. Generate graph button should be in view all availible classes section aswell
+
+add backend so it can process classes lists
+
+add graph generator
+
+beutify with proper html and css
+
+deploy
+
+publish
