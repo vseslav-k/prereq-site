@@ -46,10 +46,11 @@ export function buildMapFromString(allClassesMap: Record<string, string>, classe
 
 }
 
-function getMaxJump(
+function getJumpVal(
   course: string,
   dag: Record<string, string[]>,
-  depths: Record<string, number>
+  depths: Record<string, number>,
+  max=true
 ): number {
 
 
@@ -65,9 +66,13 @@ function getMaxJump(
 
   if (children.length === 0) return 100;
 
-  return Math.max(
-    ...children.map(child => (depths[child] ?? 0) - parentDepth)
-  );
+
+
+  if(max){
+    return Math.max( ...children.map(child => (depths[child] ?? 0) - parentDepth));
+  }
+
+  return Math.min( ...children.map(child => (depths[child] ?? 0) - parentDepth));
 }
 
 
@@ -161,12 +166,14 @@ function buildGraphFromMap(dag: Record<string, string[]>) {
 
   const xSpacing = 200;
   const ySpacing = 150;
-  const chunkSpacing = 0;
+  const chunkSpacing = 100;
 
   let chunkOffsetX = 0;
 
   for (const component of components) {
+
     const subgraph: Record<string, string[]> = {};
+
     for (const course of component) {
       subgraph[course] = dag[course];
     }
@@ -174,24 +181,34 @@ function buildGraphFromMap(dag: Record<string, string[]>) {
     const depths = getDepths(subgraph);
 
     const depthGroups: Record<number, string[]> = {};
+
     for (const [course, depth] of Object.entries(depths)) {
+
       if (!depthGroups[depth]) depthGroups[depth] = [];
       depthGroups[depth].push(course);
+
     }
 
     for (const [depthStr, courses] of Object.entries(depthGroups)) {
-      const depth = parseInt(depthStr);
 
+      
+      const depth = parseInt(depthStr);
+    
       const sorted = courses.slice().sort((a, b) => {
-        const jumpA = getMaxJump(a, dag, depths);
-        const jumpB = getMaxJump(b, dag, depths);
+        const jumpA = getJumpVal(a, dag, depths, true); // max jump for ordering
+        const jumpB = getJumpVal(b, dag, depths, true);
         return jumpA - jumpB;
       });
-
+    
       sorted.forEach((course, i) => {
-        const x = chunkOffsetX + i * xSpacing;
-        const y = depth * ySpacing;
 
+        const minJump = getJumpVal(course, dag, depths, false);
+        const shouldBump = isUpperDiv(course) && minJump > 1;
+    
+        const adjustedDepth = shouldBump ? depth + 1 : depth;
+        const x = chunkOffsetX + i * xSpacing;
+        const y = adjustedDepth * ySpacing;
+    
         nodes.push({
           id: course,
           data: { label: course },
@@ -206,6 +223,7 @@ function buildGraphFromMap(dag: Record<string, string[]>) {
         });
       });
     }
+    
 
     for (const [course, prereqs] of Object.entries(subgraph)) {
       for (const prereq of prereqs) {
@@ -228,6 +246,16 @@ function buildGraphFromMap(dag: Record<string, string[]>) {
   }
 
   return { nodes, edges };
+}
+
+function bumpCourse(course: string, dag: Record<string, string[]>, depths: Record<string, number>, depth:number){
+  const minJump = getJumpVal(course, dag, depths, false);
+  const shouldBump = isUpperDiv(course) && minJump > 1;
+
+  const adjustedDepth = shouldBump ? depth + 1 : depth;
+  
+  
+
 }
 
 
@@ -275,6 +303,16 @@ function findConnectedComponents(dag: Record<string, string[]>): string[][] {
 }
 
 
+function findIsolatedNodes(dag: Record<string, string[]>): string[] {
+  const allCourses = Object.keys(dag);
+  const dependents = new Set(
+    Object.values(dag).flat()
+  );
+
+  return allCourses.filter(course =>
+    (dag[course].length === 0) && !dependents.has(course)
+  );
+}
 
 function topoSort(dag: Record<string, string[]>): string[] {
   const inDegree: Record<string, number> = {};
@@ -381,6 +419,32 @@ function getDependencies(graph: Record<string, string[]>): Record<string, string
 
   return dependencies;
 }
+
+function isUpperDiv(course: string):boolean{
+
+  let courseId =course.split(" ")[1];
+
+  if(courseId.length <3){
+    return false
+  }
+
+  function isNumeric(str: string): boolean {
+    return !isNaN(Number(str)) && str.trim() !== '';
+  }
+
+
+
+  if(isNumeric(courseId)){
+    return true
+  }
+
+
+
+
+
+  return false
+}
+
 
 function generateColorMap(coursesMap: Record<string, string[]>){
 

@@ -16,6 +16,7 @@ export default function GenerateSchedulePage() {
   function cleanUserInp(inp: string):string{
     
     inp = inp.replace(/ +/g, ' ');
+    inp = inp.replace(/,+/g, ',');
     inp = inp.replace(/ ,/g, ',');
 
     
