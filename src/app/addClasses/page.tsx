@@ -54,7 +54,7 @@ export default function generateSchedulePage(){
 
             <div>
                 <label >Prerequisites: </label>
-                <input type="text" name="prereqs" id="prereqs" placeholder="CSE 16, MATH 21, CMPM 120..." required/>
+                <input type="text" name="prereqs" id="prereqs" placeholder="CSE 16, MATH 21, CMPM 120..." />
             </div>
 
             <div>
