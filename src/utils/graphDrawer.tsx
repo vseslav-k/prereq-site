@@ -158,6 +158,8 @@ function includeUnmentionedPrereqs(completeCourseMap: Record<string, string[]>, 
   
 
 }
+
+
 function buildGraphFromMap(dag: Record<string, string[]>) {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -166,14 +168,12 @@ function buildGraphFromMap(dag: Record<string, string[]>) {
 
   const xSpacing = 200;
   const ySpacing = 150;
-  const chunkSpacing = 100;
+  const chunkSpacing = 0;
 
   let chunkOffsetX = 0;
 
   for (const component of components) {
-
     const subgraph: Record<string, string[]> = {};
-
     for (const course of component) {
       subgraph[course] = dag[course];
     }
@@ -181,34 +181,24 @@ function buildGraphFromMap(dag: Record<string, string[]>) {
     const depths = getDepths(subgraph);
 
     const depthGroups: Record<number, string[]> = {};
-
     for (const [course, depth] of Object.entries(depths)) {
-
       if (!depthGroups[depth]) depthGroups[depth] = [];
       depthGroups[depth].push(course);
-
     }
 
     for (const [depthStr, courses] of Object.entries(depthGroups)) {
-
-      
       const depth = parseInt(depthStr);
-    
+
       const sorted = courses.slice().sort((a, b) => {
-        const jumpA = getJumpVal(a, dag, depths, true); // max jump for ordering
-        const jumpB = getJumpVal(b, dag, depths, true);
+        const jumpA = getJumpVal(a, dag, depths);
+        const jumpB = getJumpVal(b, dag, depths);
         return jumpA - jumpB;
       });
-    
-      sorted.forEach((course, i) => {
 
-        const minJump = getJumpVal(course, dag, depths, false);
-        const shouldBump = isUpperDiv(course) && minJump > 1;
-    
-        const adjustedDepth = shouldBump ? depth + 1 : depth;
+      sorted.forEach((course, i) => {
         const x = chunkOffsetX + i * xSpacing;
-        const y = adjustedDepth * ySpacing;
-    
+        const y = depth * ySpacing;
+
         nodes.push({
           id: course,
           data: { label: course },
@@ -223,7 +213,6 @@ function buildGraphFromMap(dag: Record<string, string[]>) {
         });
       });
     }
-    
 
     for (const [course, prereqs] of Object.entries(subgraph)) {
       for (const prereq of prereqs) {
@@ -247,6 +236,7 @@ function buildGraphFromMap(dag: Record<string, string[]>) {
 
   return { nodes, edges };
 }
+
 
 function bumpCourse(course: string, dag: Record<string, string[]>, depths: Record<string, number>, depth:number){
   const minJump = getJumpVal(course, dag, depths, false);
