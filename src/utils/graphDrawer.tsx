@@ -50,11 +50,8 @@ function getJumpVal(
   course: string,
   dag: Record<string, string[]>,
   depths: Record<string, number>,
-  max=true
+  max = true
 ): number {
-
-
-
   const parentDepth = depths[course] ?? 0;
   const children: string[] = [];
 
@@ -64,15 +61,10 @@ function getJumpVal(
     }
   }
 
-  if (children.length === 0) return 100;
+  if (children.length === 0) return 110;
 
-
-
-  if(max){
-    return Math.max( ...children.map(child => (depths[child] ?? 0) - parentDepth));
-  }
-
-  return Math.min( ...children.map(child => (depths[child] ?? 0) - parentDepth));
+  const jumps = children.map(child => (depths[child] ?? 0) - parentDepth);
+  return max ? Math.max(...jumps) : Math.min(...jumps);
 }
 
 
@@ -190,8 +182,8 @@ function buildGraphFromMap(dag: Record<string, string[]>) {
       const depth = parseInt(depthStr);
 
       const sorted = courses.slice().sort((a, b) => {
-        const jumpA = getJumpVal(a, dag, depths);
-        const jumpB = getJumpVal(b, dag, depths);
+        const jumpA = getJumpVal(a, dag, depths, true);
+        const jumpB = getJumpVal(b, dag, depths, true);
         return jumpA - jumpB;
       });
 
@@ -238,15 +230,6 @@ function buildGraphFromMap(dag: Record<string, string[]>) {
 }
 
 
-function bumpCourse(course: string, dag: Record<string, string[]>, depths: Record<string, number>, depth:number){
-  const minJump = getJumpVal(course, dag, depths, false);
-  const shouldBump = isUpperDiv(course) && minJump > 1;
-
-  const adjustedDepth = shouldBump ? depth + 1 : depth;
-  
-  
-
-}
 
 
 
