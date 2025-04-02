@@ -1,11 +1,11 @@
 'use client';
-
+import { getKeyCourses } from '@/utils/graphDrawer';
 import { useEffect, useState } from 'react';
 import PocketBase from 'pocketbase';
+import { cleanUserInp, toStdInput, toUrlInput } from '@/utils/inputManager';
 
 import {getClassMap, meregeMaps} from '@/utils/databaseWrangler'
 
-const pb = new PocketBase('http://127.0.0.1:8090');
 
 
 export default function DisplayAllClasses() {
@@ -13,7 +13,6 @@ export default function DisplayAllClasses() {
 
   useEffect(() => {
     meregeMaps().then(setClassMap);
-
   }, []);
 
 
@@ -21,18 +20,39 @@ export default function DisplayAllClasses() {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); // prevent page reload
 
-    const form = e.currentTarget;
-    const checkboxes = form.querySelectorAll('input[type="checkbox"]');
-    let selectedClasses = '';
+    function getRedirUrl(){
+      const form = e.currentTarget;
+      const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+      let selectedClasses = '';
 
-    checkboxes.forEach((checkbox) => {
-      const input = checkbox as HTMLInputElement;
-      if (input.checked) {
-        selectedClasses += input.id + ', ';
-      }
+      checkboxes.forEach((checkbox) => {
+        const input = checkbox as HTMLInputElement;
+        if (input.checked) {
+          selectedClasses += input.id + ', ';
+        }
+        
+      });
+
+
+      selectedClasses = cleanUserInp(selectedClasses);
+
+      const keyCourses = toUrlInput(getKeyCourses(classMap, selectedClasses));
       
-    });
-    console.log('Selected classes:', selectedClasses.trim());
+
+      const redirUrl = "/generateSchedule?classes="+keyCourses;
+
+      console.log(selectedClasses);
+      console.log(redirUrl);
+
+
+      return redirUrl;
+
+    }
+
+    getRedirUrl()
+
+    window.location.href = getRedirUrl();
+    
   }
 
   return (

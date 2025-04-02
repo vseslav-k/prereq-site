@@ -1,0 +1,8 @@
+{
+    "cors": {
+      "allowedOrigins": ["http://localhost:3000"], // your Next.js dev site
+      "allowedMethods": ["GET", "POST", "OPTIONS"],
+      "allowedHeaders": ["*"]
+    }
+  }
+  

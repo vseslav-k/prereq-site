@@ -24,7 +24,7 @@ export function DAGGraph(classMap: Record<string, string[]>) {
 
 
 
-export function buildMapFromString(allClassesMap: Record<string, string>, classesStr: string){
+export function buildMapFromString(allClassesMap: Record<string, string>, classesStr: string):Record<string, string[]> {
 
     const courseArr:string[] = classesStr.split(", ")
 
@@ -365,33 +365,28 @@ function getPrereqCounts(graph: Record<string, string[]>): Record<string, number
 
 }
 
-function getDependencies(graph: Record<string, string[]>): Record<string, string[]>{
+function getDependencies(graph: Record<string, string[]>): Record<string, string[]> {
   let dependencies: Record<string, string[]> = {};
 
-
-
-  for (const [course1, prereqs1] of Object.entries(graph)) {
+  for (const [course1, _] of Object.entries(graph)) {
     const dependenciesList: string[] = [];
 
     for (const [course2, prereqs2] of Object.entries(graph)) {
-
-      if(course1===course2){
+      if (course1 === course2) {
         continue;
       }
 
-      if(prereqs2.includes(course1)){
-        dependenciesList.push(course1);
+      if (prereqs2.includes(course1)) {
+        dependenciesList.push(course2); 
       }
-   
     }
 
-    dependencies[course1]=dependenciesList;
-
- 
+    dependencies[course1] = dependenciesList;
   }
 
   return dependencies;
 }
+
 
 function isUpperDiv(course: string):boolean{
 
@@ -509,4 +504,25 @@ function hsvToHex(h: number, s: number, v: number): string {
   };
 
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+export function getKeyCourses(allClassesMap: Record<string, string>, classesStr: string):string{
+
+  const classMap: Record<string, string[]> = buildMapFromString(allClassesMap, classesStr);
+
+  const dependencies: Record<string, string[]> = getDependencies(classMap);
+
+  let leafCourses: string[] = [];
+
+  for (const [course, prereqs] of Object.entries(dependencies)) {
+
+    if(prereqs.length == 0){
+      leafCourses.push(course);
+    }
+
+  }
+
+  return(leafCourses.join(", "));
+
+
 }
