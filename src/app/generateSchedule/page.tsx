@@ -95,17 +95,17 @@ export default function GenerateSchedulePage() {
         <div className="flex flex-wrap justify-center gap-4 mb-8">
           <a href="/allClasses" className="no-underline">
             <button className="bg-accent-yellow hover:bg-accent-yellow-light text-navy py-2 px-4 rounded-lg transition-colors font-medium">
-              View all available classes
+              Class Search
             </button>
           </a>
           <a href="/addClasses" className="no-underline">
             <button className="bg-accent-yellow hover:bg-accent-yellow-light text-navy py-2 px-4 rounded-lg transition-colors font-medium">
-              Add classes not on list
+              Add New Classes
             </button>
           </a>
           <a href="/" className="no-underline">
             <button className="bg-navy hover:bg-navy-light text-white py-2 px-4 rounded-lg transition-colors border-2 border-accent-yellow">
-              Back
+            UC Selection
             </button>
           </a>
         </div>
