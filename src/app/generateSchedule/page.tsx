@@ -1,31 +1,56 @@
 'use client';
-import { JSX, useState } from 'react';
+import { JSX, useState, useRef, useEffect } from 'react';
 import { DAGGraph, buildMapFromString } from '@/utils/graphDrawer';
+import { cleanUserInp, toStdInput } from '@/utils/inputManager';
 import { meregeMaps } from '@/utils/databaseWrangler';
+import { useSearchParams } from 'next/navigation';
+
+
+
+
+
 
 export default function GenerateSchedulePage() {
-  const [graph, setGraph] = useState<JSX.Element | null>(null);
+  let urlParametersRecieved = false;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const searchParams = useSearchParams();
+
+
+  function checkUrlParams(params: URLSearchParams) {
+
+    if (urlParametersRecieved) return;
+
+    const urlClasses = params.get('classes');
+    console.log(urlClasses);
+
+    if (!urlClasses) return;
+    
+    urlParametersRecieved = true;
+    const urlInp = cleanUserInp(urlClasses);
+    const parsed = toStdInput(urlInp);
+    
+    autofillInput(parsed);
+    generateGraph(parsed);
+  }
+
+useEffect(() => {
+  checkUrlParams(searchParams);
+}, [searchParams]);
+
+  
+  function autofillInput(value: string) {
+    if (inputRef.current) {
+      inputRef.current.value = value;
+    }
+  }
 
   async function generateGraph(userInput: string) {
     const allClasses = await meregeMaps();
     const map = buildMapFromString(allClasses, userInput);
     const generatedGraph = DAGGraph(map);
-    setGraph(generatedGraph); // ⬅️ updates React state, re-renders
+    setGraph(generatedGraph); 
   }
 
-  function cleanUserInp(inp: string):string{
-    
-    inp = inp.replace(/ +/g, ' ');
-    inp = inp.replace(/,+/g, ',');
-    inp = inp.replace(/ ,/g, ',');
-
-    
-    while (inp.endsWith(' ') || inp.endsWith(',')) {
-      inp = inp.slice(0, -1);
-    }
-
-    return inp;
-  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -38,13 +63,20 @@ export default function GenerateSchedulePage() {
     
 
 
+
+  const [graph, setGraph] = useState<JSX.Element | null>(null);
+  useEffect(() => {
+    checkUrlParams(searchParams);
+  }, [searchParams]);
+
+
     return (
       <div>
         <h1>Input the classes you want to take</h1>
         <form onSubmit={handleSubmit}>
             <div>
                 <label >Classes:</label>
-                <input type="text" name="classes" id="classes" placeholder="CSE 16, MATH 21, CMPM 120..." required/>
+                <input type="text" name="classes" id="classes" placeholder="CSE 16, MATH 21, CMPM 120..." required ref={inputRef}/>
             </div>
 
             <div>
@@ -80,3 +112,4 @@ export default function GenerateSchedulePage() {
     )
   
   }
+
