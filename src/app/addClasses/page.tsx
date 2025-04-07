@@ -1,4 +1,6 @@
 'use client';
+import { cleanUserInp } from '@/utils/inputManager';
+
 
 export default function AddClassesPage() {
     function addNewCourse(course: string, prereqs:string) {
@@ -12,8 +14,8 @@ export default function AddClassesPage() {
         e.preventDefault();
     
         const formData = new FormData(e.currentTarget);
-        const course = formData.get('course') as string;
-        const prereqs = formData.get('prereqs') as string;
+        const course = cleanUserInp(formData.get('course') as string);
+        const prereqs = cleanUserInp(formData.get('prereqs') as string);
     
         addNewCourse(course, prereqs);
         alert(`Added course: ${course} with prereqs: ${prereqs}`);
