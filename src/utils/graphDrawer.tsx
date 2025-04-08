@@ -92,8 +92,9 @@ function parseMap(map: Record<string, string>){
 
 }
 
-function logAmbiguousPrereqs(){
+function logAmbiguousPrereqs(ambigousPrereqs: string[]){
   console.log("Ambigous Prereq detected");
+  console.log(ambigousPrereqs);
 }
 function includeUnmentionedPrereqs(completeCourseMap: Record<string, string[]>, map: Record<string, string[]>) {
 
@@ -115,45 +116,11 @@ function includeUnmentionedPrereqs(completeCourseMap: Record<string, string[]>, 
     //console.log("Inner loop 1 start" )
 
     //gather the list of all prereqs for all current courses
-    for (const [key, prereqs] of Object.entries(result)) {
+    for (let [key, prereqs] of Object.entries(result)) {
 
 
 
-      for(let i=0; i<prereqs.length; i++){
-
-        let ambigousPrereqs = prereqs[i].split("|");
-        console.log("ambigousPrereqs" )
-        console.log(ambigousPrereqs )
-        const filtered = ambigousPrereqs.filter(course => course in map);
-
-        if(ambigousPrereqs.length == 1){
-          prereqs[i] = ambigousPrereqs[0];
-          continue;
-        }
-
-        //see if any of the ambigous prereq options are in the map
-
-
-        if(filtered.length == 0){
-          prereqs[i] = ambigousPrereqs[0];
-          logAmbiguousPrereqs();
-        }
-        else if(filtered.length == 1){
-          prereqs[i] = filtered[0];
-        }
-        else{
-          prereqs[i] = filtered[0];
-          filtered.shift();
-
-          for(let j=0; j<filtered.length; j++){
-            result[filtered[j]] = completeCourseMap[filtered[j]];
-          
-          }
-          
-        }
-
-
-      }
+      [prereqs, result] = handleAmbiguousPrereqs(completeCourseMap, map, prereqs, result)
       
 
       totalPrereqList = totalPrereqList.concat(prereqs);
@@ -220,7 +187,7 @@ function handleAmbiguousPrereqs(completeCourseMap: Record<string, string[]>, map
 
     if(filtered.length == 0){
       prereqs[i] = ambigousPrereqs[0];
-      logAmbiguousPrereqs();
+      logAmbiguousPrereqs(ambigousPrereqs);
     }
     else if(filtered.length == 1){
       prereqs[i] = filtered[0];
