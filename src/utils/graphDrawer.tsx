@@ -92,6 +92,9 @@ function parseMap(map: Record<string, string>){
 
 }
 
+function logAmbiguousPrereqs(){
+  console.log("Ambigous Prereq detected");
+}
 function includeUnmentionedPrereqs(completeCourseMap: Record<string, string[]>, map: Record<string, string[]>) {
 
   let result:Record<string, string[]>  = structuredClone(map) ;
@@ -109,48 +112,135 @@ function includeUnmentionedPrereqs(completeCourseMap: Record<string, string[]>, 
     totalPrereqList = [];
 
 
-    console.log("Inner loop 1 start" )
-    for (const [key, value] of Object.entries(result)) {
+    //console.log("Inner loop 1 start" )
+
+    //gather the list of all prereqs for all current courses
+    for (const [key, prereqs] of Object.entries(result)) {
 
 
-      totalPrereqList = totalPrereqList.concat(value);
+
+      for(let i=0; i<prereqs.length; i++){
+
+        let ambigousPrereqs = prereqs[i].split("|");
+        console.log("ambigousPrereqs" )
+        console.log(ambigousPrereqs )
+        const filtered = ambigousPrereqs.filter(course => course in map);
+
+        if(ambigousPrereqs.length == 1){
+          prereqs[i] = ambigousPrereqs[0];
+          continue;
+        }
+
+        //see if any of the ambigous prereq options are in the map
+
+
+        if(filtered.length == 0){
+          prereqs[i] = ambigousPrereqs[0];
+          logAmbiguousPrereqs();
+        }
+        else if(filtered.length == 1){
+          prereqs[i] = filtered[0];
+        }
+        else{
+          prereqs[i] = filtered[0];
+          filtered.shift();
+
+          for(let j=0; j<filtered.length; j++){
+            result[filtered[j]] = completeCourseMap[filtered[j]];
+          
+          }
+          
+        }
+
+
+      }
+      
+
+      totalPrereqList = totalPrereqList.concat(prereqs);
     }
 
-    console.log("totalPrereqList" )
-    console.log(totalPrereqList )
+   // console.log("totalPrereqList" )
+   // console.log(totalPrereqList )
   
     const keysList: string[] = Object.keys(result);
     totalPrereqList = totalPrereqList.filter(item => !keysList.includes(item));
-    
+
+    //remove any prereqs that are already in the result map
     totalPrereqList = Array.from(new Set(totalPrereqList));
 
-    console.log("totalPrereqList after filter" )
-    console.log(totalPrereqList )
+    //console.log("totalPrereqList after filter" )
+   // console.log(totalPrereqList )
 
-    console.log("Key list" )
-    console.log(keysList )
-  
+   // console.log("Key list" )
+   //console.log(keysList )
+
+    //if there are no more prereqs to add, return the result
     if(totalPrereqList.length==0){
       console.log("Function returned on its own will "+i)
       return result;
     }
   
+
+    //add the prereqs to the result map with their respective prereqs
     for (const course of totalPrereqList) {
       result[course] = completeCourseMap[course];
     }
 
-    console.log("result after appending" )
-    console.log(result )
+   // console.log("result after appending" )
+  //  console.log(result )
 
   }
 
+  //repeat all of this 20 times to ensure that all prereqs are added
 
-  console.log("Function returned due to timeout")
+
+ // console.log("Function returned due to timeout")
   return result;
   
 
 }
 
+
+function handleAmbiguousPrereqs(completeCourseMap: Record<string, string[]>, map: Record<string, string[]>, prereqs: string[], result: Record<string, string[]>): any[] {
+
+  for(let i=0; i<prereqs.length; i++){
+
+    let ambigousPrereqs = prereqs[i].split("|");
+    console.log("ambigousPrereqs" )
+    console.log(ambigousPrereqs )
+    const filtered = ambigousPrereqs.filter(course => course in map);
+
+    if(ambigousPrereqs.length == 1){
+      prereqs[i] = ambigousPrereqs[0];
+      continue;
+    }
+
+    //see if any of the ambigous prereq options are in the map
+
+
+    if(filtered.length == 0){
+      prereqs[i] = ambigousPrereqs[0];
+      logAmbiguousPrereqs();
+    }
+    else if(filtered.length == 1){
+      prereqs[i] = filtered[0];
+    }
+    else{
+      prereqs[i] = filtered[0];
+      filtered.shift();
+
+      for(let j=0; j<filtered.length; j++){
+        result[filtered[j]] = completeCourseMap[filtered[j]];
+      
+      }
+      
+    }
+
+
+  }
+
+  return [prereqs, result];
+}
 
 function buildGraphFromMap(dag: Record<string, string[]>) {
   const nodes: Node[] = [];
